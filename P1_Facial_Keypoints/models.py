@@ -5,7 +5,9 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 # can use the below import should you choose to initialize the weights of your Net
-import torch.nn.init as I
+# import torch.nn.init as I
+from torch.nn import init
+
 
 
 class Net(nn.Module):
@@ -24,13 +26,14 @@ class Net(nn.Module):
         
         ## Note that among the layers to add, consider including:
         # maxpooling layers, multiple conv layers, fully-connected layers, and other layers (such as dropout or batch normalization) to avoid overfitting
-        # Max-Pool layer that we will use multiple times
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
         
         # Conv layers
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(3, 3), stride=1, padding=0)
         self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(2, 2), stride=1, padding=0)
         self.conv4 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(1, 1), stride=1, padding=0)
+        
+        # Max-Pool layer that we will use multiple times
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
         
         # Dropout layers
         self.dropout1 = nn.Dropout(p=0.1)
@@ -44,6 +47,14 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(in_features=6400, out_features=1000)
         self.fc2 = nn.Linear(in_features=1000, out_features=1000)
         self.fc3 = nn.Linear(in_features=1000, out_features=2)
+        
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                # Conv layers have weights initialized with random # drawn from uniform distribution
+                m.weight = nn.init.uniform(m.weight, a=0, b=1) # nn.init.uniform_ does not seem to work for in-place change
+            elif isinstance(m, nn.Linear):
+                # FC layers have weights initialized with Glorot uniform initialization
+                m.weight = nn.init.xavier_uniform(m.weight, gain=1)
         
     def forward(self, x):
         ## TODO: Define the feedforward behavior of this model
@@ -70,7 +81,7 @@ class Net(nn.Module):
         x = F.ELU(self.fc1(x))
         x = self.dropout5(x)
         
-        x = F.ELU(self.fc2(x))
+        x = F.ReLU(self.fc2(x))
         x = self.dropout6(x)
         
         x = self.fc3(x)
