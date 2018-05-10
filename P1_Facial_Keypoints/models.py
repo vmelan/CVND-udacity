@@ -8,8 +8,7 @@ import torch.nn.functional as F
 # import torch.nn.init as I
 from torch.nn import init
 
-
-
+# NaimishNet
 class Net(nn.Module):
 
     def __init__(self):
@@ -28,7 +27,7 @@ class Net(nn.Module):
         # maxpooling layers, multiple conv layers, fully-connected layers, and other layers (such as dropout or batch normalization) to avoid overfitting
         
         # Conv layers
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(3, 3), stride=1, padding=0)
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3), stride=1, padding=0)
         self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(2, 2), stride=1, padding=0)
         self.conv4 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(1, 1), stride=1, padding=0)
         
@@ -45,9 +44,10 @@ class Net(nn.Module):
         
         # Fully connected layers
         self.fc1 = nn.Linear(in_features=6400, out_features=1000)
-        self.fc2 = nn.Linear(in_features=1000, out_features=1000)
-        self.fc3 = nn.Linear(in_features=1000, out_features=2)
+        self.fc2 = nn.Linear(in_features=1000, out_features=500)
+        self.fc3 = nn.Linear(in_features=500, out_features=136)
         
+        # Custom weights initialization
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 # Conv layers have weights initialized with random # drawn from uniform distribution
@@ -62,28 +62,28 @@ class Net(nn.Module):
         ## x = self.pool(F.relu(self.conv1(x)))
         
         ## Conv layers
-        x = self.pool(F.ELU(self.conv1(x)))
+        x = self.pool(F.elu(self.conv1(x)))
         x = self.dropout1(x)
-        
-        x = self.pool(F.ELU(self.conv2(x)))
+                
+        x = self.pool(F.elu(self.conv2(x)))
         x = self.dropout2(x)
         
-        x = self.pool(F.ELU(self.conv3(x)))
+        x = self.pool(F.elu(self.conv3(x)))
         x = self.dropout3(x)
         
-        x = self.pool(F.ELU(self.conv4(x)))
+        x = self.pool(F.elu(self.conv4(x)))
         x = self.dropout4(x)
-        
+                
         ## Flatten
         x = x.view(x.size(0), -1) # .view() can be thought as np.reshape
-        
+                
         ## Fully connected layers
-        x = F.ELU(self.fc1(x))
+        x = F.elu(self.fc1(x))
         x = self.dropout5(x)
-        
-        x = F.ReLU(self.fc2(x))
+                
+        x = F.relu(self.fc2(x))
         x = self.dropout6(x)
-        
+                
         x = self.fc3(x)
         
         # a modified x, having gone through all the layers of your model, should be returned
