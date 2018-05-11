@@ -8,8 +8,9 @@ import torch.nn.functional as F
 # import torch.nn.init as I
 from torch.nn import init
 
+
 # NaimishNet
-class Net(nn.Module):
+class NaimishNet(nn.Module):
 
     def __init__(self):
         super(Net, self).__init__()
@@ -81,10 +82,75 @@ class Net(nn.Module):
         x = F.elu(self.fc1(x))
         x = self.dropout5(x)
                 
-        x = F.relu(self.fc2(x))
+#         x = F.relu(self.fc2(x))
+        x = F.tanh(self.fc2(x)) # experimenting w/ different activation function instead of relu
         x = self.dropout6(x)
                 
         x = self.fc3(x)
         
         # a modified x, having gone through all the layers of your model, should be returned
+        return x
+
+    
+    
+    
+# AlexNet
+class AlexNet(nn.Module):
+    
+    def __init__(self):
+        super().__init__()
+        
+        ## Conv layers
+        # input of size (1 x 227 x 227)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=96, kernel_size=(4, 4), stride=4, padding=0) # VALID
+        self.conv2 = nn.Conv2d(in_channels=96, out_channels=256, kernel_size=(5, 5), stride=1, padding=2) # SAME
+        self.conv3 = nn.Conv2d(in_channels=256, out_channels=384, kernel_size=(3, 3), stride=1, padding=1) # SAME
+        self.conv4 = nn.Conv2d(in_channels=384, out_channels=384, kernel_size=(3, 3), stride=1, padding=1) # SAME
+        self.conv5 = nn.Conv2d(in_channels=384, out_channels=256, kernel_size=(3, 3), stride=1, padding=1) # SAME
+        
+        ## Max-Pool layer 
+        self.pool = nn.MaxPool2d(kernel_size=3, stride=2)
+        
+        ## Linear layers
+        self.fc1 = nn.Linear(in_features=9216, out_features=4096)
+        self.fc2 = nn.Linear(in_features=4096, out_features=4096)
+        self.fc3 = nn.Linear(in_features=4096, out_features=136)
+        
+        ## Dropout 
+        self.dropout = nn.Dropout(p=0.5)
+        
+        ## Local response normalization
+        # if size=r=2 and a neuron has a strong activation, it will inhibit the activation
+        # of the neurons located in the feature maps immediately above and below its own.
+        self.lrn = nn.LocalResponseNorm(size=2, alpha=0.00002, beta=0.75, k=1) 
+        
+    def forward(self, x):
+        
+        ## Conv layers
+        x = F.relu(self.conv1(x))
+        x = self.lrn(x)
+        x = self.pool(x)
+        
+        x = F.relu(self.conv2(x))
+        x = self.pool(x)
+        
+        x = F.relu(self.conv3(x))
+        x = self.lrn(x)
+        
+        x = F.relu(self.conv4(x))
+        
+        x = F.relu(self.conv5(x))
+        
+        ## Flatten
+        x = x.view(x.size(0), -1) 
+        
+        ## Fully connected layers
+        x = F.relu(self.fc1(x))
+        x = self.dropout(x)
+        
+        x = F.relu(self.fc2(x))
+        x = self.dropout(x)
+        
+        x = F.relu(self.fc3(x))
+        
         return x
