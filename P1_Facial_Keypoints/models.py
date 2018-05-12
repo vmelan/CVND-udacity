@@ -91,9 +91,7 @@ class NaimishNet(nn.Module):
         # a modified x, having gone through all the layers of your model, should be returned
         return x
 
-    
-    
-    
+        
 # AlexNet
 class AlexNet(nn.Module):
     
@@ -119,36 +117,50 @@ class AlexNet(nn.Module):
         ## Dropout 
         self.dropout = nn.Dropout(p=0.5)
         
+        # Batch Normalization
+        self.bn1 = nn.BatchNorm2d(num_features=96, eps=1e-05)
+        self.bn2 = nn.BatchNorm2d(num_features=256, eps=1e-05)
+        self.bn3 = nn.BatchNorm2d(num_features=384, eps=1e-05)
+        self.bn4 = nn.BatchNorm2d(num_features=384, eps=1e-05)
+        self.bn5 = nn.BatchNorm2d(num_features=256, eps=1e-05)
+        self.bn6 = nn.BatchNorm1d(num_features=4096, eps=1e-05)
+        self.bn7 = nn.BatchNorm1d(num_features=4096, eps=1e-05)
+        
         ## Local response normalization
         # if size=r=2 and a neuron has a strong activation, it will inhibit the activation
         # of the neurons located in the feature maps immediately above and below its own.
-        self.lrn = nn.LocalResponseNorm(size=2, alpha=0.00002, beta=0.75, k=1) 
+#         self.lrn = LocalResponseNorm(size=2, alpha=0.00002, beta=0.75, k=1)  # lrn is on new pytorch version apparently
         
     def forward(self, x):
         
         ## Conv layers
         x = F.relu(self.conv1(x))
-        x = self.lrn(x)
+        x = self.bn1(x)
         x = self.pool(x)
         
         x = F.relu(self.conv2(x))
+        x = self.bn2(x)
         x = self.pool(x)
         
         x = F.relu(self.conv3(x))
-        x = self.lrn(x)
+        x = self.bn3(x)
         
         x = F.relu(self.conv4(x))
+        x = self.bn4(x)
         
         x = F.relu(self.conv5(x))
-        
+        x = self.bn5(x)
+        x = self.pool(x)
+
         ## Flatten
         x = x.view(x.size(0), -1) 
         
         ## Fully connected layers
         x = F.relu(self.fc1(x))
-        x = self.dropout(x)
+        x = self.bn6(x)
         
         x = F.relu(self.fc2(x))
+        x = self.bn6(x)
         x = self.dropout(x)
         
         x = F.relu(self.fc3(x))
