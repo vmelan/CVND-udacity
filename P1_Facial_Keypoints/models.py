@@ -115,7 +115,9 @@ class AlexNet(nn.Module):
         self.fc3 = nn.Linear(in_features=4096, out_features=136)
         
         ## Dropout 
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout2 = nn.Dropout(p=0.2)
+        self.dropout4 = nn.Dropout(p=0.4)
+        self.dropout6 = nn.Dropout(p=0.6)
         
         # Batch Normalization
         self.bn1 = nn.BatchNorm2d(num_features=96, eps=1e-05)
@@ -131,38 +133,52 @@ class AlexNet(nn.Module):
         # of the neurons located in the feature maps immediately above and below its own.
 #         self.lrn = LocalResponseNorm(size=2, alpha=0.00002, beta=0.75, k=1)  # lrn is on new pytorch version apparently
         
+        # Custom weights initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                m.weight = nn.init.xavier_uniform(m.weight, gain=1)
+            elif isinstance(m, nn.Linear):
+                # FC layers have weights initialized with Glorot uniform initialization
+                m.weight = nn.init.xavier_uniform(m.weight, gain=1)
+
     def forward(self, x):
         
         ## Conv layers
-        x = F.relu(self.conv1(x))
-        x = self.bn1(x)
+        x = F.elu(self.conv1(x))
         x = self.pool(x)
+        x = self.dropout2(x)
         
-        x = F.relu(self.conv2(x))
+        x = F.elu(self.conv2(x))
         x = self.bn2(x)
         x = self.pool(x)
+#         x = self.dropout2(x)
         
-        x = F.relu(self.conv3(x))
+        x = F.elu(self.conv3(x))
         x = self.bn3(x)
+        x = self.dropout4(x)
         
-        x = F.relu(self.conv4(x))
+        x = F.elu(self.conv4(x))
         x = self.bn4(x)
+        x = self.dropout4(x)
         
-        x = F.relu(self.conv5(x))
+        x = F.elu(self.conv5(x))
         x = self.bn5(x)
         x = self.pool(x)
+#         x = self.dropout4(x)
 
         ## Flatten
         x = x.view(x.size(0), -1) 
         
         ## Fully connected layers
-        x = F.relu(self.fc1(x))
+        x = F.elu(self.fc1(x))
         x = self.bn6(x)
+        x = self.dropout6(x)
         
-        x = F.relu(self.fc2(x))
+        x = F.elu(self.fc2(x))
         x = self.bn6(x)
-        x = self.dropout(x)
+        x = self.dropout6(x)
         
-        x = F.relu(self.fc3(x))
-        
+#         x = F.tanh(self.fc3(x))
+        x = self.fc3(x)
+    
         return x
