@@ -76,4 +76,5 @@ However, I did change the activation functions and added some regularization tec
 | Dropout             | probability : 0.6                   |
 | probability : 0.6   | # neurons : 136; activation : None |
 | Output              | size : (136 x 1)                    |
-```
+
+
