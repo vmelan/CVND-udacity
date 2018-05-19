@@ -5,9 +5,10 @@ This repository contains project files for Udacity's Computer Vision Nanodegree 
 ## Projects
 
 ### Facial Keypoint Detection
+>[P1_Facial_Keypoints](https://github.com/vmelan/CVND-udacity/tree/master/P1_Facial_Keypoints)
 
 Use image processing techniques and deep learning techniques to detect faces in an image and find facial keypoints, such as the position of the eyes, nose, and mouth on a face.
-[P1_Facial_Keypoints](./tree/master/P1_Facial_Keypoints)
+
 
 ### Automatic Image Captioning
 
