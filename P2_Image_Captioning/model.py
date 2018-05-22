@@ -45,10 +45,37 @@ class DecoderRNN(nn.Module):
         self.linear = nn.Linear(hidden_size, vocab_size)                     
 
         # initialize the hidden state
-        self.hidden = self.init_hidden()
+        # self.hidden = self.init_hidden()
         
+    def init_hidden(self, batch_size):
+    	""" At the start of training, we need to initialize a hidden state;
+    		there will be none because the hidden state is formed based on previously seen data.
+    		So, this function defines a hidden state with all zeroes
+	    	The axes semantics are (num_layers, batch_size, hidden_dim)
+	    """
+    	return (Variable(torch.zeros(1, batch_size, self.hidden_size)), \
+				Variable(torch.zeros(1, batch_size, self.hidden_size)))
+
     def forward(self, features, captions):
-        
+        """ Define the feedforward behavior of the model """
+        # Initialize the hidden state
+        self.batch_size = features.shape[0]
+        self.hidden = self.init_hidden(self.batch_size) # features is of shape (batch_size, embed_size)
+
+        # Create embedded word vectors for each word in the captions
+        embeds = self.word_embeddings(captions)
+
+        # Get the output and hidden state by passing the lstm over our word embeddings
+        # the lstm takes in our embeddings and hidden state
+        lstm_out, self.hidden = self.lstm(embeds.view(len(captions), self.batch_size, -1), self.hidden) # input of shape (seq_len, batch, input_size)  
+
+        # Flatten
+        lstm_out = lstm_out.view(lstm_out.size(0), -1) 
+
+        # Fully connected layer
+        outputs = self.linear(lstm_out)
+
+        return outputs
 
     def sample(self, inputs):
         " accepts pre-processed image tensor (inputs) and returns predicted sentence (list of tensor ids of length max_len) "
