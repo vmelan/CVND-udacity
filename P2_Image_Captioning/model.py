@@ -1,28 +1,32 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-from torch.autograd import Variable
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class EncoderCNN(nn.Module):
     def __init__(self, embed_size):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
+        for param in resnet.parameters():
+            param.requires_grad_(False)
+        
         modules = list(resnet.children())[:-1]
         self.resnet = nn.Sequential(*modules)
         self.embed = nn.Linear(resnet.fc.in_features, embed_size)
 
     def forward(self, images):
         features = self.resnet(images)
-        features = Variable(features.data)
         features = features.view(features.size(0), -1)
         features = self.embed(features)
         return features
+    
 
 class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size):
         ''' Initialize the layers of this model.'''
-        super(DecoderRNN, self).__init__()
-        
+        super().__init__()
+    
         # Keep track of hidden_size for initialization of hidden state
         self.hidden_size = hidden_size
         
@@ -48,32 +52,43 @@ class DecoderRNN(nn.Module):
         # self.hidden = self.init_hidden()
         
     def init_hidden(self, batch_size):
-    	""" At the start of training, we need to initialize a hidden state;
-    		there will be none because the hidden state is formed based on previously seen data.
-    		So, this function defines a hidden state with all zeroes
-	    	The axes semantics are (num_layers, batch_size, hidden_dim)
-	    """
-    	return (Variable(torch.zeros(1, batch_size, self.hidden_size)), \
-				Variable(torch.zeros(1, batch_size, self.hidden_size)))
+        """ At the start of training, we need to initialize a hidden state;
+        there will be none because the hidden state is formed based on previously seen data.
+        So, this function defines a hidden state with all zeroes
+        The axes semantics are (num_layers, batch_size, hidden_dim)
+        """
+        return (torch.zeros((1, batch_size, self.hidden_size), device=device), \
+                torch.zeros((1, batch_size, self.hidden_size), device=device))
 
     def forward(self, features, captions):
         """ Define the feedforward behavior of the model """
+        
         # Initialize the hidden state
-        self.batch_size = features.shape[0]
-        self.hidden = self.init_hidden(self.batch_size) # features is of shape (batch_size, embed_size)
+#         print("features shape: ", features.shape)
+#         print("captions shape: ", captions.shape)
 
+        self.batch_size = features.shape[0] # features is of shape (batch_size, embed_size)
+        self.hidden = self.init_hidden(self.batch_size) 
+                
         # Create embedded word vectors for each word in the captions
-        embeds = self.word_embeddings(captions)
-
+        embeddings = self.word_embeddings(captions)
+        
+        # Stack the features and captions
+        embeddings = torch.cat((features.unsqueeze(1), embeddings), dim=1) 
+#         print("embeddings.shape: ", embeddings.shape)
+        
         # Get the output and hidden state by passing the lstm over our word embeddings
         # the lstm takes in our embeddings and hidden state
-        lstm_out, self.hidden = self.lstm(embeds.view(len(captions), self.batch_size, -1), self.hidden) # input of shape (seq_len, batch, input_size)  
+#         lstm_out, self.hidden = self.lstm(embeddings.view(len(embeddings), self.batch_size, -1), self.hidden) # input of shape (seq_len, batch, input_size)
+        lstm_out, self.hidden = self.lstm(embeddings, self.hidden)
+#         print("lstm_out.shape: ", lstm_out.shape)
+#         lstm_out, _ = self.lstm(embeddings)
 
         # Flatten
-        lstm_out = lstm_out.view(lstm_out.size(0), -1) 
+#         lstm_out = lstm_out.view(lstm_out.size(0), -1) 
 
         # Fully connected layer
-        outputs = self.linear(lstm_out)
+        outputs = self.linear(lstm_out)[:, :-1, :] # not predicting the <end> word
 
         return outputs
 
