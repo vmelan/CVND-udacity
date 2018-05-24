@@ -63,32 +63,26 @@ class DecoderRNN(nn.Module):
     def forward(self, features, captions):
         """ Define the feedforward behavior of the model """
         
+        # Discard the <end> word to avoid predicting when <end> is the input of the RNN
+        captions = captions[:, :-1]     
+        
         # Initialize the hidden state
-#         print("features shape: ", features.shape)
-#         print("captions shape: ", captions.shape)
-
         self.batch_size = features.shape[0] # features is of shape (batch_size, embed_size)
         self.hidden = self.init_hidden(self.batch_size) 
                 
         # Create embedded word vectors for each word in the captions
-        embeddings = self.word_embeddings(captions)
+        embeddings = self.word_embeddings(captions) # embeddings new shape : (batch_size, captions length - 1, embed_size)
         
         # Stack the features and captions
-        embeddings = torch.cat((features.unsqueeze(1), embeddings), dim=1) 
-#         print("embeddings.shape: ", embeddings.shape)
+        embeddings = torch.cat((features.unsqueeze(1), embeddings), dim=1) # embeddings new shape : (batch_size, caption length, embed_size)
         
         # Get the output and hidden state by passing the lstm over our word embeddings
         # the lstm takes in our embeddings and hidden state
-#         lstm_out, self.hidden = self.lstm(embeddings.view(len(embeddings), self.batch_size, -1), self.hidden) # input of shape (seq_len, batch, input_size)
-        lstm_out, self.hidden = self.lstm(embeddings, self.hidden)
-#         print("lstm_out.shape: ", lstm_out.shape)
-#         lstm_out, _ = self.lstm(embeddings)
-
-        # Flatten
-#         lstm_out = lstm_out.view(lstm_out.size(0), -1) 
+        lstm_out, self.hidden = self.lstm(embeddings, self.hidden) # lstm_out shape : (batch_size, caption length, hidden_size)
 
         # Fully connected layer
-        outputs = self.linear(lstm_out)[:, :-1, :] # not predicting the <end> word
+        outputs = self.linear(lstm_out)
+#         outputs = self.linear(lstm_out)[:, :-1, :] # not predicting when <end> word as the input
 
         return outputs
 
