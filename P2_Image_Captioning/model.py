@@ -67,7 +67,7 @@ class DecoderRNN(nn.Module):
         captions = captions[:, :-1]     
         
         # Initialize the hidden state
-        self.batch_size = features.shape[0] # features is of shape (batch_size, embed_size)
+        batch_size = features.shape[0] # features is of shape (batch_size, embed_size)
         self.hidden = self.init_hidden(self.batch_size) 
                 
         # Create embedded word vectors for each word in the captions
@@ -79,13 +79,40 @@ class DecoderRNN(nn.Module):
         # Get the output and hidden state by passing the lstm over our word embeddings
         # the lstm takes in our embeddings and hidden state
         lstm_out, self.hidden = self.lstm(embeddings, self.hidden) # lstm_out shape : (batch_size, caption length, hidden_size)
+#         lstm_out, self.hidden = self.lstm(embeddings, self.hidden) # lstm_out shape : (batch_size, caption length, hidden_size)
 
         # Fully connected layer
-        outputs = self.linear(lstm_out)
+        outputs = self.linear(lstm_out) # outputs shape : (batch_size, caption length, vocab_size)
 #         outputs = self.linear(lstm_out)[:, :-1, :] # not predicting when <end> word as the input
 
         return outputs
 
     def sample(self, inputs):
         " accepts pre-processed image tensor (inputs) and returns predicted sentence (list of tensor ids of length max_len) "
-        pass
+        
+        
+        output = []
+        batch_size = inputs.shape[0] # batch_size is 1 at inference, inputs shape : (1, 1, embed_size)
+        hidden = self.init_hidden(batch_size) # Get initial hidden state of the LSTM
+    
+#         hidden = None
+        for i in range(20): 
+            lstm_out, hidden = self.lstm(inputs, hidden) # lstm_out shape : (1, 1, hidden_size)
+            print("lstm_out.shape: ", lstm_out.shape)
+            outputs = self.linear(lstm_out)  # outputs shape : (1, 1, vocab_size)
+            print("outputs.shape: ", outputs.shape)
+            _, max_indice = torch.max(outputs, dim=1) # predict the most likely next word 
+            print("max_indice: ", max_indice)
+            print("max_indice.shape: ", max_indice.shape)
+            
+            print("corresponding word :")
+            corresp_word = data_loader.dataset.vocab.idx2word(max_indice)
+            print(corresp_word)
+            
+            output.append(max_indice) # storing all the word predicted
+            
+            inputs = self.word_embeddings(max_indice) # inputs shape : (1, vocab_size, embed_size)
+            print("inputs.shape: ", inputs.shape)
+            
+            break
+        return output
