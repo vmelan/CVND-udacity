@@ -95,24 +95,20 @@ class DecoderRNN(nn.Module):
         batch_size = inputs.shape[0] # batch_size is 1 at inference, inputs shape : (1, 1, embed_size)
         hidden = self.init_hidden(batch_size) # Get initial hidden state of the LSTM
     
-#         hidden = None
-        for i in range(20): 
+        while True:
             lstm_out, hidden = self.lstm(inputs, hidden) # lstm_out shape : (1, 1, hidden_size)
-            print("lstm_out.shape: ", lstm_out.shape)
             outputs = self.linear(lstm_out)  # outputs shape : (1, 1, vocab_size)
-            print("outputs.shape: ", outputs.shape)
-            _, max_indice = torch.max(outputs, dim=1) # predict the most likely next word 
-            print("max_indice: ", max_indice)
-            print("max_indice.shape: ", max_indice.shape)
+            outputs = outputs.squeeze(1) # outputs shape : (1, vocab_size)
+            _, max_indice = torch.max(outputs, dim=1) # predict the most likely next word, max_indice shape : (1)
             
-            print("corresponding word :")
-            corresp_word = data_loader.dataset.vocab.idx2word(max_indice)
-            print(corresp_word)
+            output.append(max_indice.cpu().numpy()[0].item()) # storing all the word predicted
             
-            output.append(max_indice) # storing all the word predicted
+            if (max_indice == 1):
+                # We predicted the <end> word, so there is no further prediction to do
+                break
             
-            inputs = self.word_embeddings(max_indice) # inputs shape : (1, vocab_size, embed_size)
-            print("inputs.shape: ", inputs.shape)
+            ## Prepare to embed the last predicted word to be the new input of the lstm
+            inputs = self.word_embeddings(max_indice) # inputs shape : (1, embed_size)
+            inputs = inputs.unsqueeze(1) # inputs shape : (1, 1, embed_size)
             
-            break
         return output
