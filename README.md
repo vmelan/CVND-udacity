@@ -11,5 +11,8 @@ Use image processing techniques and deep learning techniques to detect faces in 
 
 
 ### Automatic Image Captioning
+>[P2_Image_captioning](https://github.com/vmelan/CVND-udacity/tree/master/P2_Image_Captioning)
 
 Combine CNN and RNN knowledge to build a deep learning model that produces captions given an imput image.
+
+### Landmark Detection & Tracking (SLAM)

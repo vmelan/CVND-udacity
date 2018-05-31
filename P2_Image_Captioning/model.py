@@ -83,39 +83,38 @@ class DecoderRNN(nn.Module):
         # Get the output and hidden state by passing the lstm over our word embeddings
         # the lstm takes in our embeddings and hidden state
         lstm_out, self.hidden = self.lstm(embeddings, self.hidden) # lstm_out shape : (batch_size, caption length, hidden_size)
-#         lstm_out, self.hidden = self.lstm(embeddings, self.hidden) # lstm_out shape : (batch_size, caption length, hidden_size)
 
         # Fully connected layer
         outputs = self.linear(lstm_out) # outputs shape : (batch_size, caption length, vocab_size)
-#         outputs = self.linear(lstm_out)[:, :-1, :] # not predicting when <end> word as the input
 
         return outputs
 
-    # def sample(self, inputs):
-    #     " accepts pre-processed image tensor (inputs) and returns predicted sentence (list of tensor ids of length max_len) "
+    ## Greedy search 
+    def sample(self, inputs):
+        " accepts pre-processed image tensor (inputs) and returns predicted sentence (list of tensor ids of length max_len) "
         
         
-    #     output = []
-    #     batch_size = inputs.shape[0] # batch_size is 1 at inference, inputs shape : (1, 1, embed_size)
-    #     hidden = self.init_hidden(batch_size) # Get initial hidden state of the LSTM
+        output = []
+        batch_size = inputs.shape[0] # batch_size is 1 at inference, inputs shape : (1, 1, embed_size)
+        hidden = self.init_hidden(batch_size) # Get initial hidden state of the LSTM
     
-    #     while True:
-    #         lstm_out, hidden = self.lstm(inputs, hidden) # lstm_out shape : (1, 1, hidden_size)
-    #         outputs = self.linear(lstm_out)  # outputs shape : (1, 1, vocab_size)
-    #         outputs = outputs.squeeze(1) # outputs shape : (1, vocab_size)
-    #         _, max_indice = torch.max(outputs, dim=1) # predict the most likely next word, max_indice shape : (1)
+        while True:
+            lstm_out, hidden = self.lstm(inputs, hidden) # lstm_out shape : (1, 1, hidden_size)
+            outputs = self.linear(lstm_out)  # outputs shape : (1, 1, vocab_size)
+            outputs = outputs.squeeze(1) # outputs shape : (1, vocab_size)
+            _, max_indice = torch.max(outputs, dim=1) # predict the most likely next word, max_indice shape : (1)
             
-    #         output.append(max_indice.cpu().numpy()[0].item()) # storing the word predicted
+            output.append(max_indice.cpu().numpy()[0].item()) # storing the word predicted
             
-    #         if (max_indice == 1):
-    #             # We predicted the <end> word, so there is no further prediction to do
-    #             break
+            if (max_indice == 1):
+                # We predicted the <end> word, so there is no further prediction to do
+                break
             
-    #         ## Prepare to embed the last predicted word to be the new input of the lstm
-    #         inputs = self.word_embeddings(max_indice) # inputs shape : (1, embed_size)
-    #         inputs = inputs.unsqueeze(1) # inputs shape : (1, 1, embed_size)
+            ## Prepare to embed the last predicted word to be the new input of the lstm
+            inputs = self.word_embeddings(max_indice) # inputs shape : (1, embed_size)
+            inputs = inputs.unsqueeze(1) # inputs shape : (1, 1, embed_size)
             
-    #     return output
+        return output
 
 
 
