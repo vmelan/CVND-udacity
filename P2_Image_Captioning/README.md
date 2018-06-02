@@ -19,7 +19,7 @@ One such example of how this architecture performs is pictured below:
 * `Notebook 1`: Load and pre-process data from the MS COCO dataset and design the CNN-RNN model for automatically generating image captions
 * `Notebook 2`: Training phase of the CNN-RNN model 
 * `Notebook 3`: Using the previously trained model to generate captions for images in the test dataset.
-* data_loader.py : Custom data loader for PyTorch combining the dataset and the sampler
+* `data_loader.py` : Custom data loader for PyTorch combining the dataset and the sampler
 * `vocabulary.py` : Vocabulary constructor built from the captions in the training dataset
 * `vocab.pkl` : Vocabulary file stored to load it immediately from the data loader
 
@@ -35,7 +35,7 @@ This might seem unrelated to judge the architecture to use in the encoder based 
   <img src="images/encoder.png">
 </p>
 
-## RNN Encoder
+## RNN Decoder
 The CNN encoder is followed by a recurrent neural network that generates a corresponding sentence.
 
 The RNN-Decoder consists in a <ins>single LSTM layer</ins> followed by <ins>one fully-connected (linear) layer</ins>, this architecture was presented from the paper `Show and Tell: A Neural Image Caption Generator (2014)` https://arxiv.org/pdf/1411.4555.pdf (figure **3.1**)
