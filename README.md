@@ -16,3 +16,6 @@ Use image processing techniques and deep learning techniques to detect faces in 
 Combine CNN and RNN knowledge to build a deep learning model that produces captions given an imput image.
 
 ### Landmark Detection & Tracking (SLAM)
+>[P3_SLAM](https://github.com/vmelan/CVND-udacity/tree/master/P3_SLAM)
+
+Implement Graph SLAM (Simultaneous Localization and Mapping) for a 2 dimensional world
