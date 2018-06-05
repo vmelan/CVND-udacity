@@ -45,20 +45,20 @@ After correctly implementing SLAM, we can visualize
 
 - Omega : 
 <p align="center">
-  <img src="images/implement_omega.png">
+  <img src="images/implement_omega.PNG">
 </p>
 
 - Xi : 
 
 <p align="center">
-  <img src="images/implement_xi.png">
+  <img src="images/implement_xi.PNG">
 </p>
 
 ## Solution 
 To "solve" for all these x values, we can use linear algebra; all the values of x are in the vector `mu` which can be calculated as a product of the inverse of omega times `xi`.
 
 <p align="center">
-  <img src="images/solution_clean.png">
+  <img src="images/solution_clean.PNG">
 </p>
 
 The result can be displayed as well : 
